@@ -1,62 +1,90 @@
-# Offline Document Assistant (Spring Boot + LangChain4j, no cloud)
+# NexaRAG — Privacy-Focused AI-Powered Knowledge Retrieval Platform
 
-Upload your own documents (PDF, DOCX, TXT...) and ask questions about them.
-Embeddings run inside the JVM and the answers come from a local Ollama model,
-so nothing leaves your machine at runtime.
+NexaRAG is a privacy-focused document question-answering platform that enables users to upload documents and retrieve relevant information using Retrieval-Augmented Generation (RAG). The full application runs locally, combining semantic search with a locally hosted language model to generate answers grounded in document content.
 
-## Features
-- Spring Boot REST API and a simple web page (upload, list, delete, chat)
-- Persistent index: saved to `data/`, reloaded on startup if your docs haven't changed
-- Citations: every answer lists the source file, an excerpt and a similarity score
-- Folder watching: drop files into `docs/` and the index updates by itself
-- Unit tests for chunking and retrieval quality (no Ollama or network needed)
+## Live Demo
 
-## Requirements
-- JDK 17+
-- Maven
-- [Ollama](https://ollama.com) installed and running
+**[Open NexaRAG Live Demo](YOUR_VERCEL_LIVE_DEMO_URL)**
 
-Maven needs internet the first time to download dependencies; after that the app runs offline.
+> **Demo Notice:** The live link is a browser-based demonstration of the user interface and basic document retrieval workflow. It uses sample documents and keyword-based matching. The complete Spring Boot backend, semantic embedding pipeline, and local AI model are not deployed on Vercel. The demo does not represent the full functionality of the application.
 
-## REST API
-| Method | Path | Description |
+## Project Overview
+
+NexaRAG is designed to provide document-based knowledge retrieval without depending on cloud-based AI services during local application use. Users can add documents, ask questions about their content, and receive answers accompanied by source references.
+
+The complete application uses a local embedding model to represent document content as vectors and a local Ollama language model to generate context-aware answers.
+
+## Key Features
+
+- **Document Upload:** Upload supported documents, including PDF, DOCX, and TXT files.
+- **Semantic Search:** Retrieve relevant document passages using vector embeddings.
+- **Context-Aware Answers:** Generate responses grounded in retrieved document content.
+- **Source Citations:** Display source filenames, relevant excerpts, and similarity scores.
+- **Automatic Indexing:** Monitor document folders and update the index when files change.
+- **Persistent Index:** Store the document index locally and reload it after application restarts.
+- **Authentication:** Support account registration and login with BCrypt password hashing and session-based authentication.
+- **Privacy-Focused Processing:** Keep document indexing and language-model inference on the local machine.
+
+## Technology Stack
+
+- **Language:** Java 17
+- **Backend:** Spring Boot
+- **AI Framework:** LangChain4j
+- **Embedding Model:** all-MiniLM-L6-v2 using ONNX
+- **Local Language Model:** Ollama
+- **Document Processing:** Apache Tika
+- **Security:** Spring Security, BCrypt, HTTP-only session cookies
+- **Testing:** JUnit and Spring Boot Test
+- **Demo Hosting:** Vercel
+
+## How It Works
+
+1. **Document ingestion:** Documents are uploaded or placed in the configured documents folder.
+2. **Text extraction:** Supported files are processed to extract their text content.
+3. **Embedding generation:** The text is divided into chunks and converted into vector embeddings locally.
+4. **Relevant passage retrieval:** The user's question is compared with indexed content to find relevant passages.
+5. **Answer generation:** The retrieved passages are provided to the local Ollama model as context.
+6. **Source attribution:** The application returns the answer with source information to help users verify the retrieved content.
+
+## Live Demo vs. Full Application
+
+| Capability | Vercel Demo | Full Local Application |
 |---|---|---|
-| GET | `/api/documents` | List indexed files |
-| POST | `/api/upload` | Multipart upload, field name `file` |
-| DELETE | `/api/documents/{name}` | Remove a file |
-| POST | `/api/ask` | Body `{"question": "..."}` returns answer plus sources |
+| Web interface | Yes | Yes |
+| Sample documents | Yes | Yes |
+| Upload supported files | Yes, limited browser-side formats | Yes, supported document formats |
+| Question answering | Keyword-based matching | RAG with semantic retrieval and a local LLM |
+| Vector embeddings | No | Yes |
+| Ollama integration | No | Yes |
+| Spring Boot backend | No | Yes |
+| Source references | Demo citations | Retrieved document sources and excerpts |
+| Local document processing | Browser-only demo processing | Local backend processing |
 
-## Design notes and known limits
-- Any change to the docs folder rebuilds the whole index. Simple and correct for personal-size
-  collections; per-file incremental updates would need a store that supports delete-by-metadata.
-- The vector store is LangChain4j's in-memory store saved to JSON. For large collections, swap in
-  a database-backed store (H2/SQLite with vectors, Lucene, or pgvector).
-- Citations show file name and excerpt. Page numbers would need a PDF parser that keeps page
-  metadata (for example PDFBox page by page).
-- Not yet compiled or run by the author of this scaffold: if a LangChain4j API name differs in your
-  version, adjust the imports. Newer releases renamed `ChatLanguageModel` to `ChatModel`.
+## Project Structure
 
-## Quick start for a demo
-1. Install JDK 17+, Maven and Ollama.
-2. Run `run.sh` (Mac/Linux) or `run.bat` (Windows). It pulls the model if missing and starts the app.
-3. Open http://localhost:8080. Two sample files in `docs/` are indexed automatically.
-4. Try asking: "What embedding model does this project use?"
+```text
+offline-rag-spring/
+├── demo/                 # Static browser-based demo for Vercel
+├── docs/                 # Sample documents and project notes
+├── src/
+│   ├── main/
+│   │   ├── java/         # Spring Boot application and RAG services
+│   │   └── resources/    # Application configuration and UI
+│   └── test/             # Automated tests
+├── pom.xml               # Maven configuration
+├── run.bat               # Windows startup script
+├── run.sh                # Linux/macOS startup script
+└── README.md
+```
 
-- Passwords are hashed with BCrypt and stored in `data/users.json` (never in plain text).
-- Sessions use an HTTP-only cookie (8 hour timeout); CSRF protection is enabled.
-- After 5 wrong passwords a username is locked for 5 minutes.
-- Usernames are case-insensitive; passwords must be 8-64 characters.
-- To stop others registering, set `rag.allow-registration=false` after creating your account.
-- To reset everything, stop the app and delete `data/users.json`.
-- Over HTTPS (for example behind a reverse proxy), also set `server.servlet.session.cookie.secure=true`.
+## Privacy and Limitations
 
-API: `POST /api/auth/register` (JSON), `POST /api/auth/login` (form fields `username`, `password`),
-`POST /api/auth/logout`, `GET /api/auth/me`. All other `/api/**` endpoints return 401 until you sign in.
+The full application is designed for local processing. Its document index, account data, and model interactions are handled locally rather than by a hosted AI API.
 
-Known limits: all signed-in users share the same document library (per-user libraries are a good next step),
-and accounts live in a JSON file, which suits a personal or demo deployment rather than many users.
+The Vercel demo is a separate, simplified implementation. It uses browser-side keyword matching and does not execute the full RAG pipeline or connect to Ollama.
 
-Keep private documents out of `docs/` (or add them to `.gitignore`) before pushing. The `data/` folder, which holds
-user accounts and the index, is already ignored. The CI workflow in `.github/workflows/ci.yml` runs `mvn test` on every push.
+The current implementation is intended for personal and demonstration use. Production deployment would require additional considerations, including per-user document isolation, persistent production-grade storage, and security hardening.
 
-Live demo: nexarag-privacy-focused-ai-powered.vercel.app
+## License
+
+See the [LICENSE](LICENSE) file for licensing information.
