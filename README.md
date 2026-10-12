@@ -16,18 +16,7 @@ so nothing leaves your machine at runtime.
 - Maven
 - [Ollama](https://ollama.com) installed and running
 
-## Run
-```bash
-ollama pull llama3.2          # one-time download (needs internet only here)
-mvn spring-boot:run
-# open http://localhost:8080
-```
 Maven needs internet the first time to download dependencies; after that the app runs offline.
-
-Run the tests:
-```bash
-mvn test
-```
 
 ## REST API
 | Method | Path | Description |
@@ -36,9 +25,6 @@ mvn test
 | POST | `/api/upload` | Multipart upload, field name `file` |
 | DELETE | `/api/documents/{name}` | Remove a file |
 | POST | `/api/ask` | Body `{"question": "..."}` returns answer plus sources |
-
-## Config (`application.properties`)
-`rag.docs-dir`, `rag.data-dir`, `rag.model`, `rag.ollama-url`, `rag.chunk-size`, `rag.chunk-overlap`
 
 ## Design notes and known limits
 - Any change to the docs folder rebuilds the whole index. Simple and correct for personal-size
@@ -56,14 +42,6 @@ mvn test
 3. Open http://localhost:8080. Two sample files in `docs/` are indexed automatically.
 4. Try asking: "What embedding model does this project use?"
 
-## Opening in an IDE
-- IntelliJ IDEA: File > Open > select the folder (it detects pom.xml). Run `RagApplication`.
-- Eclipse: File > Import > Existing Maven Projects.
-- VS Code: install the "Extension Pack for Java", open the folder, run `RagApplication`.
-
-## Authentication (login / create account)
-The app now requires an account. On first start, open the page, choose **Create account**, then sign in.
-
 - Passwords are hashed with BCrypt and stored in `data/users.json` (never in plain text).
 - Sessions use an HTTP-only cookie (8 hour timeout); CSRF protection is enabled.
 - After 5 wrong passwords a username is locked for 5 minutes.
@@ -78,18 +56,7 @@ API: `POST /api/auth/register` (JSON), `POST /api/auth/login` (form fields `user
 Known limits: all signed-in users share the same document library (per-user libraries are a good next step),
 and accounts live in a JSON file, which suits a personal or demo deployment rather than many users.
 
-## Live demo
-The `demo/` folder is a static, browser-only version of the UI with sample documents and keyword-matched
-answers (no AI model). It deploys to Vercel as-is; see `demo/README.md`. The full offline app is this project.
-
-## Pushing to GitHub
-```bash
-git init
-git add .
-git commit -m "Offline document assistant"
-git branch -M main
-git remote add origin https://github.com/<your-username>/offline-rag-spring.git
-git push -u origin main
-```
 Keep private documents out of `docs/` (or add them to `.gitignore`) before pushing. The `data/` folder, which holds
 user accounts and the index, is already ignored. The CI workflow in `.github/workflows/ci.yml` runs `mvn test` on every push.
+
+Live demo: nexarag-privacy-focused-ai-powered.vercel.app
