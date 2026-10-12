@@ -1,6 +1,9 @@
 MIT License
 
 Copyright (c) 2026 Partha Sarathi K
+=======
+Copyright (c) 2026 <your name>
+>>>>>>> 029a2a1 (Add offline RAG Spring Boot application)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

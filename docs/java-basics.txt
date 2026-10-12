@@ -1,0 +1,5 @@
+Java is a statically typed, object-oriented programming language. Source code is compiled to bytecode
+that runs on the Java Virtual Machine, so the same program can run on Windows, macOS and Linux.
+The JVM manages memory automatically using a garbage collector.
+Maven is a build tool that downloads dependencies and runs tests using a pom.xml file.
+Spring Boot simplifies building web applications and REST APIs in Java.
